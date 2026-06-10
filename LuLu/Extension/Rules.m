@@ -320,6 +320,11 @@ bail:
         goto bail;
     }
     
+    //unarchive & process rules under lock
+    // load reassigns self.rules at runtime (e.g. profile switch), so must exclude concurrent rule lookups
+    @synchronized(self)
+    {
+
     //unarchive
     self.rules = [NSKeyedUnarchiver unarchivedObjectOfClasses:[NSSet setWithArray:@[[NSDictionary class], [NSArray class], [NSString class], [NSNumber class], [NSMutableSet class], [NSDate class], [Rule class]]]
                                                        fromData:archivedRules error:&error];
@@ -411,10 +416,12 @@ bail:
     
     //dbg msg
     os_log_debug(logHandle, "loaded %lu rules", (unsigned long)self.rules.count);
-    
+
     //happy
     result = YES;
-    
+
+    }//sync
+
 bail:
     
     return result;
@@ -518,7 +525,7 @@ bail:
     }
     
     //sync to access
-    @synchronized(self.rules)
+    @synchronized(self)
     {
         //new rule for item
         // need to init array for rules, paths, & cs info
@@ -621,7 +628,7 @@ bail:
     os_log_debug(logHandle, "updating code signing information for %{public}@ and its rules", process);
     
     //sync
-    @synchronized(self.rules)
+    @synchronized(self)
     {
         //update item's cs info
         self.rules[process.key][KEY_CS_INFO] = process.csInfo;
@@ -680,7 +687,7 @@ bail:
     os_log_debug(logHandle, "looking for rule for %{public}@ -> %{public}@", process.key, process.path);
     
     //sync to access
-    @synchronized(self.rules)
+    @synchronized(self)
     {
         //item rules
         itemRules = self.rules[process.key][KEY_RULES];
@@ -1102,7 +1109,7 @@ bail:
     os_log_debug(logHandle, "toggling rule, key: %{public}@, rule id: %{public}@", key, uuid);
     
     //sync to access
-    @synchronized(self.rules)
+    @synchronized(self)
     {
         //no uuid
         // set all (process') rules to specified state
@@ -1183,7 +1190,7 @@ bail:
     os_log_debug(logHandle, "deleting rule, key: %{public}@, rule id: %{public}@", key, uuid);
     
     //sync to access
-    @synchronized(self.rules)
+    @synchronized(self)
     {
         //no uuid
         // delete all (process') rules
@@ -1410,7 +1417,7 @@ bail:
     os_log_debug(logHandle, "unarchived (imported) %lu rules", (unsigned long)unarchivedRules.count);
     
     //update
-    @synchronized (self)
+    @synchronized(self)
     {
         //full update
         if(!userOnly) {
@@ -1505,7 +1512,7 @@ bail:
     rules2Delete = [NSMutableArray array];
     
     //sync to access
-    @synchronized(self.rules)
+    @synchronized(self)
     {
         //gather all rules
         for(NSString* key in self.rules.allKeys)
