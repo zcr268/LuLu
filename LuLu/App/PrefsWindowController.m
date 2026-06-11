@@ -842,16 +842,6 @@ bail:
     return;
 }
 
-//when user hits Enter in the profile name field, shift focus to the Next button
--(void)controlTextDidEndEditing:(NSNotification*)notification
-{
-    if(notification.object != self.profileNameLabel) return;
-
-    NSNumber* movement = notification.userInfo[@"NSTextMovement"];
-    if(movement.integerValue == NSReturnTextMovement)
-        [self.addProfileSheet makeFirstResponder:self.continueProfileButton];
-}
-
 //cancel creation of profile
 - (IBAction)cancelProfileButtonHandler:(id)sender {
     
