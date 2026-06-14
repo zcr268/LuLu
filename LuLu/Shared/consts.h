@@ -10,7 +10,7 @@
 #ifndef consts_h
 #define consts_h
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
 //signers
 enum Signer{None, Apple, AppStore, DevID, AdHoc};

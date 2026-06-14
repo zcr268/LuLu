@@ -772,22 +772,13 @@ bail:
     //add action scope
     alertResponse[KEY_SCOPE] = @(ruleScopeIndex);
 
-    //default to always
-    alertResponse[KEY_DURATION] = @(RuleDurationAlways);
-   
-    //rule duration once
-    if(NSControlStateValueOn == self.ruleDurationOnce.state) {
-        alertResponse[KEY_DURATION] = @(RuleDurationOnce);
-    }
-    
-    //rule duration process
-    if(NSControlStateValueOn == self.ruleDurationProcess.state) {
-        alertResponse[KEY_DURATION] = @(RuleDurationProcess);
-    }
-    
+    //set duration
+    alertResponse[KEY_DURATION] = @(ruleDurationTag);
+
     //rule duration custom (expiration)
-    if(NSControlStateValueOn == self.ruleDurationCustom.state) {
-        
+    // parse + validate the entered expiration
+    if(RuleDurationCustom == ruleDurationTag) {
+
         NSInteger hours  = self.ruleDurationHours.integerValue;
         NSInteger minutes = self.ruleDurationMinutes.integerValue;
         NSTimeInterval totalSeconds = (hours * 3600) + (minutes * 60);
@@ -808,10 +799,7 @@ bail:
             return;
         }
         
-        //set duration
-        alertResponse[KEY_DURATION] = @(RuleDurationCustom);
-            
-        //convert to data
+        //convert to date
         expiration = [NSDate dateWithTimeIntervalSinceNow:totalSeconds];
         
         //dbg msg
