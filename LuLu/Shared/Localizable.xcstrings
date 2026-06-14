@@ -2023,6 +2023,7 @@
     },
     "%@'s code signing information has changed" : {
       "comment" : "%@'s code signing information has changed",
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

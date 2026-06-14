@@ -322,30 +322,31 @@ extern NSMutableDictionary* alerts;
     //grab last rule duration tag
     lastRuleDurationTag = [preferences[PREF_ALERT_LAST_RULE_DURATION] integerValue];
     
-    //not set
-    // default to always
-    if(0 == lastRuleDurationTag)
-    {
-        self.ruleDurationAlways.state = NSControlStateValueOn;
+    switch (lastRuleDurationTag) {
+        case 0:
+            self.ruleDurationAlways.state = NSControlStateValueOn;
+            break;
+            
+        case RuleDurationAlways:
+            self.ruleDurationAlways.state = NSControlStateValueOn;
+            break;
+            
+        case RuleDurationOnce:
+            self.ruleDurationOnce.state = NSControlStateValueOn;
+            break;
+            
+        case RuleDurationProcess:
+            self.ruleDurationProcess.state = NSControlStateValueOn;
+            break;
+            
+        case RuleDurationCustom:
+            self.ruleDurationCustom.state = NSControlStateValueOn;
+            break;
+            
+        default:
+            break;
     }
     
-    //set rule duration
-    // ...based on last one
-    else if(lastRuleDurationTag == self.ruleDurationAlways.tag)
-    {
-        //set: on
-        self.ruleDurationAlways.state = NSControlStateValueOn;
-    }
-    else if(lastRuleDurationTag == self.ruleDurationProcess.tag)
-    {
-        //set: on
-        self.ruleDurationProcess.state = NSControlStateValueOn;
-    }
-    else if(lastRuleDurationTag == self.ruleDurationCustom.tag)
-    {
-        //set: on
-        self.ruleDurationCustom.state = NSControlStateValueOn;
-    }
     
     //show touch bar
     [self initTouchBar];
@@ -742,21 +743,17 @@ bail:
     //grab action scope index
     ruleScopeIndex = self.actionScope.indexOfSelectedItem;
     
-    //get selected rule duration
-    if(self.ruleDurationAlways.state == NSControlStateValueOn)
-    {
-        //save
-        ruleDurationTag = self.ruleDurationAlways.tag;
+    //default to always
+    ruleDurationTag = RuleDurationAlways;
+    
+    if(self.ruleDurationOnce.state == NSControlStateValueOn) {
+        ruleDurationTag = RuleDurationOnce;
     }
-    else if(self.ruleDurationProcess.state == NSControlStateValueOn)
-    {
-        //save
-        ruleDurationTag = self.ruleDurationProcess.tag;
+    else if(self.ruleDurationProcess.state == NSControlStateValueOn) {
+        ruleDurationTag = RuleDurationProcess;
     }
-    else if(self.ruleDurationCustom.state == NSControlStateValueOn)
-    {
-        //save
-        ruleDurationTag = self.ruleDurationCustom.tag;
+    else if(self.ruleDurationCustom.state == NSControlStateValueOn) {
+        ruleDurationTag = RuleDurationCustom;
     }
 
     //init alert response
@@ -775,16 +772,22 @@ bail:
     //add action scope
     alertResponse[KEY_SCOPE] = @(ruleScopeIndex);
 
-    //rule duration temporary (pid)?
-    if(NSControlStateValueOn == self.ruleDurationProcess.state)
-    {
-        //set flag
-        alertResponse[KEY_DURATION_PROCESS] = @1;
+    //default to always
+    alertResponse[KEY_DURATION] = @(RuleDurationAlways);
+   
+    //rule duration once
+    if(NSControlStateValueOn == self.ruleDurationOnce.state) {
+        alertResponse[KEY_DURATION] = @(RuleDurationOnce);
     }
     
-    //rule duration temporary (expiration)?
-    else if(NSControlStateValueOn == self.ruleDurationCustom.state)
-    {
+    //rule duration process
+    if(NSControlStateValueOn == self.ruleDurationProcess.state) {
+        alertResponse[KEY_DURATION] = @(RuleDurationProcess);
+    }
+    
+    //rule duration custom (expiration)
+    if(NSControlStateValueOn == self.ruleDurationCustom.state) {
+        
         NSInteger hours  = self.ruleDurationHours.integerValue;
         NSInteger minutes = self.ruleDurationMinutes.integerValue;
         NSTimeInterval totalSeconds = (hours * 3600) + (minutes * 60);
@@ -792,7 +795,6 @@ bail:
         //sanity check
         if(totalSeconds <= 0)
         {
-            
             //lower window level (so alert can show above)
             [self.window setLevel:NSNormalWindowLevel];
             
@@ -805,18 +807,19 @@ bail:
             //bail here
             return;
         }
-        //covert and add
-        else {
+        
+        //set duration
+        alertResponse[KEY_DURATION] = @(RuleDurationCustom);
             
-            //convert to data
-            expiration = [NSDate dateWithTimeIntervalSinceNow:totalSeconds];
-            
-            //dbg msg
-            os_log_debug(logHandle, "rule expiration: %{public}@", expiration);
-            
-            //add
-            alertResponse[KEY_DURATION_EXPIRATION] = expiration;
-        }
+        //convert to data
+        expiration = [NSDate dateWithTimeIntervalSinceNow:totalSeconds];
+        
+        //dbg msg
+        os_log_debug(logHandle, "rule expiration: %{public}@", expiration);
+        
+        //add expiration
+        alertResponse[KEY_DURATION_EXPIRATION] = expiration;
+
     }
     
     //set endpoint addr
@@ -1006,7 +1009,6 @@ bail:
     //off
     else
     {
-        //[self.options removeFromSuperview];
         [self.options setHidden:YES];
         
         //dbg msg

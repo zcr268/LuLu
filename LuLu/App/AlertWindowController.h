@@ -99,6 +99,7 @@
 
 //rule durations
 @property (weak) IBOutlet NSButton *ruleDurationAlways;
+@property (weak) IBOutlet NSButton *ruleDurationOnce;
 @property (weak) IBOutlet NSButton *ruleDurationProcess;
 @property (weak) IBOutlet NSButton *ruleDurationCustom;
 @property (weak) IBOutlet NSTextField *ruleDurationHours;

@@ -10,8 +10,17 @@
 #ifndef consts_h
 #define consts_h
 
+#import <Cocoa/Cocoa.h>
+
 //signers
 enum Signer{None, Apple, AppStore, DevID, AdHoc};
+
+typedef NS_ENUM(NSInteger, RuleDurationTag) {
+    RuleDurationAlways = 101,
+    RuleDurationOnce = 102,
+    RuleDurationProcess = 103,
+    RuleDurationCustom = 104,
+};
 
 //patreon url
 #define PATREON_URL @"https://www.patreon.com/join/objective_see"
@@ -313,9 +322,8 @@ enum Signer{None, Apple, AppStore, DevID, AdHoc};
 
 #define KEY_SCOPE @"scope"
 #define KEY_ACTION @"action"
-#define KEY_DURATION_PROCESS @"durationProcess"
-#define KEY_DURATION_EXPIRATION @"durationExpiration"
-#define KEY_DURATION_ONCE @"durationOnce"
+#define KEY_DURATION @"duration"
+#define KEY_DURATION_EXPIRATION @"expiration"
 
 #define KEY_ENDPOINT_ADDR @"endpointAddr"
 #define KEY_ENDPOINT_PORT @"endpointPort"
@@ -441,5 +449,6 @@ typedef enum {Update_Error, Update_None, Update_NotSupported, Update_Available} 
 
 //profiles directory
 #define PROFILE_DIRECTORY @"Profiles"
+
 
 #endif /* const_h */

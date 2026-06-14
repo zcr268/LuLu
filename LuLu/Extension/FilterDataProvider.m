@@ -931,8 +931,11 @@ bail:
 
         //'once'? no rule created
         // apply the user's verdict to just this (alerted) flow; the next flow will re-prompt
-        if(YES == [alert[KEY_DURATION_ONCE] boolValue])
+        if(RuleDurationOnce == [alert[KEY_DURATION] intValue])
         {
+            //dbg msg
+            os_log_debug(logHandle, "'once' response, so just handling here ...no rule will be created");
+            
             //verdict from user's action
             NEFilterNewFlowVerdict* verdict = (RULE_STATE_BLOCK == [alert[KEY_ACTION] unsignedIntValue])
                 ? [NEFilterNewFlowVerdict dropVerdict]

@@ -1140,6 +1140,18 @@
         }
       }
     },
+    "Gx9-LR-DPv.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Once\"; ObjectID = \"Gx9-LR-DPv\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Once"
+          }
+        }
+      }
+    },
     "HZu-Op-XHi.title" : {
       "comment" : "Class = \"NSTextFieldCell\"; title = \"pid:\"; ObjectID = \"HZu-Op-XHi\";",
       "extractionState" : "extracted_with_value",

@@ -39,19 +39,18 @@ extern os_log_t logHandle;
         self.uuid = [[NSUUID UUID] UUIDString];
         
         //init pid
-        // note: only set for temporary rules
-        if(YES == [info[KEY_DURATION_PROCESS] boolValue])
-        {
-            //set
+        // note: only set for temporary process duration
+        if(RuleDurationProcess == [info[KEY_DURATION] intValue]) {
             self.pid = info[KEY_PROCESS_ID];
         }
         
         //set creation
         self.creation = [NSDate date];
         
-        //init expiration
-        // though this won't (usually) be set
-        self.expiration = info[KEY_DURATION_EXPIRATION];
+        //set expiration
+        if(RuleDurationCustom == [info[KEY_DURATION] intValue]) {
+            self.expiration = info[KEY_DURATION_EXPIRATION];
+        }
         
         //init path
         self.path = info[KEY_PATH];
