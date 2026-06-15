@@ -230,6 +230,24 @@ bail:
     return;
 }
 
+//convert a simple glob (using '*' wildcards) to an anchored regular expression
+// e.g. '85.140.*.*' -> '^85\.140\..*\..*$' : literal chars are regex-escaped, '*' -> '.*', anchored
+-(NSString*)regexFromGlob:(NSString*)glob
+{
+    //split on '*'
+    NSArray<NSString*>* parts = [glob componentsSeparatedByString:@"*"];
+
+    //regex-escape each literal piece (handles '.', etc.)
+    NSMutableArray<NSString*>* escaped = [NSMutableArray array];
+    for(NSString* part in parts)
+    {
+        [escaped addObject:[NSRegularExpression escapedPatternForString:part]];
+    }
+
+    //join escaped pieces with '.*' and anchor (^...$) for a full match
+    return [NSString stringWithFormat:@"^%@$", [escaped componentsJoinedByString:@".*"]];
+}
+
 //'add' button handler
 // close sheet, returning NSModalResponseOK
 -(IBAction)addButtonHandler:(id)sender
@@ -314,17 +332,39 @@ bail:
     // or '*' if blank
     endpointAddr = (0 != self.endpointAddr.stringValue.length) ? self.endpointAddr.stringValue : VALUE_ANY;
     
-    //is endpoint addr regex?
-    // ...set var, but also validate
+    //is endpoint addr (explicitly) a regex?
     endpointAddrRegex = [NSNumber numberWithBool:(self.isEndpointAddrRegex.state == NSControlStateValueOn)];
-    if( (YES == endpointAddrRegex.boolValue) &&
-        (nil == [NSRegularExpression regularExpressionWithPattern:endpointAddr options:0 error:&error]) )
+
+    //explicit regex?
+    // validate that it compiles
+    if(YES == endpointAddrRegex.boolValue)
     {
-        //show alert
-        showAlert(NSAlertStyleWarning, NSLocalizedString(@"ERROR: invalid regex", @"ERROR: invalid regex"), [NSString stringWithFormat:NSLocalizedString(@"%@ is not a valid regular expression\r\ndetails: %@", @"%@ is not a valid regular expression\r\ndetails: %@"), endpointAddr, error.localizedDescription], @[NSLocalizedString(@"OK", @"OK")]);
-        
-        //bail
-        goto bail;
+        if(nil == [NSRegularExpression regularExpressionWithPattern:endpointAddr options:0 error:&error])
+        {
+            //show alert
+            showAlert(NSAlertStyleWarning, NSLocalizedString(@"ERROR: invalid regex", @"ERROR: invalid regex"), [NSString stringWithFormat:NSLocalizedString(@"%@ is not a valid regular expression\r\ndetails: %@", @"%@ is not a valid regular expression\r\ndetails: %@"), endpointAddr, error.localizedDescription], @[NSLocalizedString(@"OK", @"OK")]);
+
+            //bail
+            goto bail;
+        }
+    }
+    //not an explicit regex, but contains a glob ('*')?
+    // convert to an anchored regex & send as a regex rule
+    // note: the lone '*' (VALUE_ANY = 'any endpoint') is left untouched
+    else if( (YES != [endpointAddr isEqualToString:VALUE_ANY]) &&
+             (NSNotFound != [endpointAddr rangeOfString:@"*"].location) )
+    {
+        //dbg msg
+        os_log_debug(logHandle, "endpoint address '%{public}@' contains a glob ('*'), converting to regex", endpointAddr);
+
+        //convert glob -> anchored regex
+        endpointAddr = [self regexFromGlob:endpointAddr];
+
+        //...and flag as a regex rule
+        endpointAddrRegex = @YES;
+
+        //dbg msg
+        os_log_debug(logHandle, "converted glob to regex: %{public}@", endpointAddr);
     }
 
     //endpoint port
